@@ -1,5 +1,6 @@
 # pragma once
 #include "astro_math.hpp"
+#include <deque>
 
 namespace astro
 {
@@ -10,6 +11,9 @@ namespace astro
     astro::Vector3_d pos{0.0, 0.0, 0.0};
     astro::Vector3_d velocity{0.0, 0.0, 0.0};
     astro::Vector3_d acceleration{0.0, 0.0, 0.0};
+
+    std::deque<Vector3_d> trail;
+
     Color color{WHITE};
 
     Body(double x, double y, double z, double m) 

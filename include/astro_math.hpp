@@ -3,6 +3,11 @@
 
 namespace astro
 {
+    struct Vector2_d
+    {
+        double x{0.0}, y{0.0};
+    };
+
     struct Vector3_d
     {
         double x{0.0}, y{0.0}, z{0.0};

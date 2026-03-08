@@ -9,7 +9,7 @@ struct SimulationState
   const int screenHeight = 900;
   double zoom = 2e-9;
   const double dt = 1000;
-  int body_index = 0;
+  int center_body_index = 0;
   const float zoom_speed = 1.1;
   std::vector<astro::Body> bodies;
   const int sim_speed = 30;
@@ -23,3 +23,4 @@ void draw_bodies(SimulationState& state);
 void handle_input(SimulationState& state);
 void render(SimulationState& state);
 void update_sim(SimulationState& state);
+astro::Vector2_d world_to_screen(const astro::Vector3_d& pos, SimulationState& state);

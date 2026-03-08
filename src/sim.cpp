@@ -1,9 +1,11 @@
 #include <vector>
 #include <iostream>
 #include "body.hpp"
+#include <astro_math.hpp>
 #include "sim.hpp"
 
 const double GRAVITY_CONST = 6.6743015e-11;
+const int MAX_TRAIL_LENGTH = 4000;
 
 void step(std::vector<astro::Body>& bodies, double dt)
 {
@@ -12,6 +14,13 @@ void step(std::vector<astro::Body>& bodies, double dt)
     body.velocity += (body.acceleration * dt) / 2;
     body.pos += body.velocity * dt;
     body.acceleration = {0.0, 0.0, 0.0};
+
+    body.trail.push_back(body.pos);
+    if (body.trail.size() > MAX_TRAIL_LENGTH)
+    {
+      body.trail.pop_front();
+    }
+
   }
 
   calculate_accelerations(bodies);
@@ -51,17 +60,9 @@ astro::Vector3_d gravitational_force(const astro::Body& attractor, const astro::
 
 void draw_bodies(SimulationState& state)
 {
-  astro::Vector3_d target_coord;
-  target_coord = state.bodies[state.body_index].pos;
   for (const auto& body : state.bodies)
   {
-    // coordinates relative to center body
-    double x = body.pos.x - target_coord.x;
-    double y = body.pos.y - target_coord.y;
-    
-    // scale according to zoom
-    x *= state.zoom;
-    y *= state.zoom;
+    astro::Vector2_d pos = world_to_screen(body.pos, state);
 
     double minimum_pixel_size = 2;
     if (body.mass > 1e29) minimum_pixel_size = 26.0;
@@ -70,20 +71,44 @@ void draw_bodies(SimulationState& state)
 
     double scaled_radius = std::max(body.radius * state.zoom, minimum_pixel_size);
 
-    // center on screen
-    x += state.screenWidth / 2;
-    y += state.screenHeight / 2;
+    DrawCircle(pos.x, pos.y, scaled_radius, body.color);
+  }
+}
 
-    DrawCircle(x, y, scaled_radius, body.color);
+astro::Vector2_d world_to_screen(const astro::Vector3_d& pos, SimulationState& state)
+{
+  double x = pos.x - state.bodies[state.center_body_index].pos.x;
+  double y = pos.y - state.bodies[state.center_body_index].pos.y;
+
+  x *= state.zoom;
+  y *= state.zoom;
+
+  x += state.screenWidth / 2;
+  y += state.screenHeight / 2;
+
+  return {x, y};
+}
+
+void draw_trails(SimulationState& state)
+{
+  for (const auto& body : state.bodies)
+  {
+    for (size_t i = 1; i < body.trail.size(); i++)
+    {
+      astro::Vector2_d p1 = world_to_screen(body.trail[i-1], state);
+      astro::Vector2_d p2 = world_to_screen(body.trail[i], state);
+
+      DrawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y, WHITE);
+    }
   }
 }
 
 void handle_input(SimulationState& state)
 {
   // body selection
-  if (IsKeyDown(KEY_S)) state.body_index = 0;
-  else if (IsKeyDown(KEY_E)) state.body_index = 1;
-  else if (IsKeyDown(KEY_M)) state.body_index = 2;
+  if (IsKeyDown(KEY_S)) state.center_body_index = 0;
+  else if (IsKeyDown(KEY_E)) state.center_body_index = 1;
+  else if (IsKeyDown(KEY_M)) state.center_body_index = 2;
 
   // zoom
   float mouse_wheel_movement = GetMouseWheelMove();
@@ -99,6 +124,7 @@ void render(SimulationState& state)
   BeginDrawing();
     ClearBackground(BLACK);
     draw_bodies(state);
+    draw_trails(state);
   EndDrawing();
 }
 

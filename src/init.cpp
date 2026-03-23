@@ -20,14 +20,14 @@ void init_bodies(SimulationState& state)
   earth.velocity = {0.0, 29780.0, 0.0};
   earth.color = BLUE;
 
-  astro::Body moon{1.496e11 + 3.844e8, 0.0, 0.0, 7.348e22};
-  moon.radius = 1.737e6;
-  moon.velocity = {0.0, 29780 + 1022, 0.0};
-  moon.color = GRAY;
+  // astro::Body moon{1.496e11 + 3.844e8, 0.0, 0.0, 7.348e22};
+  // moon.radius = 1.737e6;
+  // moon.velocity = {0.0, 29780 + 1022, 0.0};
+  // moon.color = GRAY;
 
   state.bodies.push_back(sun);
   state.bodies.push_back(earth);
-  state.bodies.push_back(moon);
+  // state.bodies.push_back(moon);
 
   calculate_accelerations(state.bodies);
 }

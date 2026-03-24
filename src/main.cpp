@@ -10,14 +10,15 @@
 int main()
 {
   SimulationState state;
-  init_window(state);
+  ViewState view;
+  init_window(view);
   init_bodies(state);
 
   while (!WindowShouldClose()) 
   {
-    handle_input(state);
+    handle_input(state, view);
     update_sim(state);
-    render(state);
+    render(state, view);
   }
   CloseWindow();
   return 0;

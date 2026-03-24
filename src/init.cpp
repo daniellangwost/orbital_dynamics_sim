@@ -3,9 +3,9 @@
 #include "body.hpp"
 #include "sim.hpp"
 
-void init_window(SimulationState& state)
+void init_window(ViewState& view)
 {
-  InitWindow(state.screenWidth, state.screenHeight, "Orbital Mechanics Simulator");
+  InitWindow(view.screenWidth, view.screenHeight, "Orbital Mechanics Simulator");
   SetTargetFPS(60);
 }
 

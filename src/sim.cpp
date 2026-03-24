@@ -141,57 +141,57 @@ void create_body(SimulationState& state, const astro::Vector3_d pos, const astro
   state.bodies.push_back(b);
 }
 
-void draw_bodies(SimulationState& state)
+void draw_bodies(SimulationState& state, ViewState& view)
 {
   for (const auto& body : state.bodies)
   {
-    Vector2 pos = world_to_screen(body.pos, state);
+    Vector2 pos = world_to_screen(body.pos, state, view);
 
     double minimum_pixel_size = 2;
     if (body.mass > 1e29) minimum_pixel_size = 26.0;
     else if (body.mass > 1e25) minimum_pixel_size = 12.0;
     else if (body.mass > 1e22) minimum_pixel_size = 4.0;
 
-    double scaled_radius = std::max(body.radius * state.zoom, minimum_pixel_size);
+    double scaled_radius = std::max(body.radius * view.zoom, minimum_pixel_size);
 
     DrawCircle(pos.x, pos.y, scaled_radius, body.color);
   }
 }
 
-Vector2 world_to_screen(const astro::Vector3_d& pos, SimulationState& state)
+Vector2 world_to_screen(const astro::Vector3_d& pos, const SimulationState& state, const ViewState& view)
 {
-  double x = pos.x - state.bodies[state.center_body_index].pos.x;
-  double y = pos.y - state.bodies[state.center_body_index].pos.y;
+  double x = pos.x - state.bodies[view.center_body_index].pos.x;
+  double y = pos.y - state.bodies[view.center_body_index].pos.y;
 
-  x *= state.zoom;
-  y *= state.zoom;
+  x *= view.zoom;
+  y *= view.zoom;
 
-  x += state.screenWidth / 2;
-  y += state.screenHeight / 2;
+  x += view.screenWidth / 2;
+  y += view.screenHeight / 2;
 
   return {(float)x, (float)y};
 }
 
 // always sets z to 0 since there is no way to represent that on screen
-astro::Vector3_d screen_to_world(const Vector2& screen_pos, const SimulationState& state)
+astro::Vector3_d screen_to_world(const Vector2& screen_pos, const SimulationState& state, const ViewState& view)
 {
-  double x = (screen_pos.x - state.screenWidth / 2) / state.zoom;
-  double y = (screen_pos.y - state.screenHeight / 2) / state.zoom;
+  double x = (screen_pos.x - view.screenWidth / 2) / view.zoom;
+  double y = (screen_pos.y - view.screenHeight / 2) / view.zoom;
 
-  x += state.bodies[state.center_body_index].pos.x;
-  y += state.bodies[state.center_body_index].pos.y;
+  x += state.bodies[view.center_body_index].pos.x;
+  y += state.bodies[view.center_body_index].pos.y;
 
   return {x, y, 0.0};
 }
 
-void draw_trails(SimulationState& state)
+void draw_trails(SimulationState& state, ViewState& view)
 {
   for (const auto& body : state.bodies)
   {
     for (size_t i = 1; i < body.trail.size(); i++)
     {
-      Vector2 p1 = world_to_screen(body.trail[i-1], state);
-      Vector2 p2 = world_to_screen(body.trail[i], state);
+      Vector2 p1 = world_to_screen(body.trail[i-1], state, view);
+      Vector2 p2 = world_to_screen(body.trail[i], state, view);
 
       DrawLine((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y, WHITE);
     }
@@ -207,12 +207,12 @@ void clear_bodies(SimulationState& state)
   }
 }
 
-void handle_input(SimulationState& state)
+void handle_input(SimulationState& state, ViewState& view)
 {
   // body selection
-  if (IsKeyDown(KEY_S)) state.center_body_index = 0;
-  else if (IsKeyDown(KEY_E)) state.center_body_index = 1;
-  else if (IsKeyDown(KEY_M)) state.center_body_index = 2;
+  if (IsKeyDown(KEY_S)) view.center_body_index = 0;
+  else if (IsKeyDown(KEY_E)) view.center_body_index = 1;
+  else if (IsKeyDown(KEY_M)) view.center_body_index = 2;
 
   if (IsKeyDown(KEY_C)) clear_bodies(state);
 
@@ -220,40 +220,40 @@ void handle_input(SimulationState& state)
   float mouse_wheel_movement = GetMouseWheelMove();
   if (mouse_wheel_movement != 0)
   {
-    if (mouse_wheel_movement > 0) state.zoom *= state.zoom_speed;
-    else if (state.zoom > state.min_zoom) state.zoom /= state.zoom_speed;
+    if (mouse_wheel_movement > 0) view.zoom *= view.zoom_speed;
+    else if (view.zoom > view.min_zoom) view.zoom /= view.zoom_speed;
   }
   
 
   Vector2 mouse_pos = GetMousePosition();
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
   {
-    state.creating_body = true;
-    state.initial_mouse_pos = GetMousePosition();
+    view.creating_body = true;
+    view.initial_mouse_pos = GetMousePosition();
   }
 
-  if (state.creating_body)
+  if (view.creating_body)
   {
-    DrawLineV(state.initial_mouse_pos, mouse_pos, RED);
+    DrawLineV(view.initial_mouse_pos, mouse_pos, RED);
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
     {
-      float dx = state.initial_mouse_pos.x - mouse_pos.x;
-      float dy = state.initial_mouse_pos.y - mouse_pos.y;
-      astro::Vector3_d velocity = {(dx / state.zoom) * 0.000001, (dy / state.zoom) * 0.000001, 0.0};
-      create_body(state, screen_to_world(state.initial_mouse_pos, state), velocity, 1e24);
-      state.creating_body = false;
-      state.initial_mouse_pos = {0.0, 0.0};
+      float dx = view.initial_mouse_pos.x - mouse_pos.x;
+      float dy = view.initial_mouse_pos.y - mouse_pos.y;
+      astro::Vector3_d velocity = {(dx / view.zoom) * 0.000001, (dy / view.zoom) * 0.000001, 0.0};
+      create_body(state, screen_to_world(view.initial_mouse_pos, state, view), velocity, 1e24);
+      view.creating_body = false;
+      view.initial_mouse_pos = {0.0, 0.0};
     }
   }
 
 }
 
-void render(SimulationState& state)
+void render(SimulationState& state, ViewState view)
 {
   BeginDrawing();
     ClearBackground(BLACK);
-    draw_bodies(state);
-    draw_trails(state);
+    draw_bodies(state, view);
+    draw_trails(state, view);
   EndDrawing();
 }
 

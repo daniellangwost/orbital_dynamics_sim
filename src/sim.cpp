@@ -33,7 +33,7 @@ void step(SimulationState& state)
   }
 
   Energies current_energies = compute_total_energy(state);
-  log_energies(current_energies);
+  // log_energies(current_energies);
 }
 
 void calculate_accelerations(std::vector<astro::Body>& bodies)
@@ -73,7 +73,7 @@ Energies compute_total_energy(SimulationState& state)
     for (size_t j = i+1; j < state.bodies.size(); j++)
     {
       double force = gravitational_force(state.bodies[i], state.bodies[j]).length();
-      potential_energy += force * abs((state.bodies[i].pos - state.bodies[j].pos).length());
+      potential_energy += force * (state.bodies[i].pos - state.bodies[j].pos).length();
     }
   }
   Energies energies;
@@ -85,8 +85,51 @@ Energies compute_total_energy(SimulationState& state)
 void log_energies(Energies& energies)
 {
   TraceLog(LOG_INFO, "Current Potential Energy: %f", energies.potential_energy);
-  TraceLog(LOG_INFO, "Current Kinteic Energy: %f", energies.kinetic_energy);
+  TraceLog(LOG_INFO, "Current Kinetic Energy: %f", energies.kinetic_energy);
   TraceLog(LOG_INFO, "Current TOTAL Energy: %f", energies.potential_energy + energies.kinetic_energy);
+}
+
+void update_orbit_tracker(SimulationState& state)
+{
+  OrbitTracker& tracker = state.orbit_tracker;
+  tracker.event_detected = 0;
+  double current_distance = (state.bodies[tracker.orbiting_idx].pos - state.bodies[tracker.reference_idx].pos).length();
+  if (tracker.state == 0)
+  {
+    tracker.r_prev = current_distance;
+    tracker.state = 1;
+  }
+  else if (tracker.state == 1)
+  {
+    tracker.delta_r_prev = current_distance - tracker.r_prev;
+    tracker.r_prev = current_distance;
+    tracker.state = 2;
+  }
+  else
+  {
+    double delta_current = current_distance - tracker.r_prev;
+    if (tracker.delta_r_prev < 0 && delta_current > 0) // periapsis
+    {
+      tracker.event_detected = 1;
+      tracker.periapsis = tracker.r_prev;
+    }
+    else if (tracker.delta_r_prev > 0 && delta_current < 0) // apoapsis
+    {
+      tracker.event_detected = 2;
+      tracker.apoapsis = tracker.r_prev;
+    }
+    tracker.delta_r_prev = delta_current;
+    tracker.r_prev = current_distance;   
+  }
+}
+
+void log_orbit_event(SimulationState& state)
+{
+  OrbitTracker& tracker = state.orbit_tracker;
+  if (tracker.event_detected == 1)
+    TraceLog(LOG_INFO, "Detected Periapsis: %f", tracker.periapsis);
+  else if (tracker.event_detected == 2)
+    TraceLog(LOG_INFO, "Detected Apoapsis: %f", tracker.apoapsis);
 }
 
 void create_body(SimulationState& state, const astro::Vector3_d pos, const astro::Vector3_d velocity, double mass)
@@ -219,5 +262,11 @@ void update_sim(SimulationState& state)
   for (int i{}; i < state.sim_speed; i++)
   {
     step(state);
+    update_orbit_tracker(state);
+    if (state.orbit_tracker.event_detected)
+    {
+      log_orbit_event(state);
+      state.orbit_tracker.event_detected = 0;
+    }
   }
 }

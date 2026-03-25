@@ -198,6 +198,12 @@ void draw_trails(SimulationState& state, ViewState& view)
   }
 }
 
+void draw_hud(SimulationState& state, ViewState& view)
+{
+  DrawRectangleRounded({10, 10, 400, 300}, 0.5, 0, GRAY);
+  DrawText(TextFormat("Speed: %.2f m/2", state.bodies[1].velocity.length()), 52, 30, 30, WHITE);
+}
+
 void clear_bodies(SimulationState& state)
 {
   // delete all bodies except the first one, which is the sun
@@ -254,6 +260,7 @@ void render(SimulationState& state, ViewState view)
     ClearBackground(BLACK);
     draw_bodies(state, view);
     draw_trails(state, view);
+    draw_hud(state, view);
   EndDrawing();
 }
 

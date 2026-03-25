@@ -17,7 +17,7 @@ void init_bodies(SimulationState& state)
 
   astro::Body earth{1.496e11, 0.0, 0.0, 5.972e24};
   earth.radius = 6.371e6;
-  earth.velocity = {0.0, 29780.0, 0.0};
+  earth.velocity = {0.0, 35000.0, 0.0};
   earth.color = BLUE;
 
   // astro::Body moon{1.496e11 + 3.844e8, 0.0, 0.0, 7.348e22};

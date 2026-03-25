@@ -1,8 +1,4 @@
-#include <vector>
-#include <cmath>
-#include <iostream>
 #include "raylib.h"
-#include "astro_math.hpp"
 #include "body.hpp"
 #include "sim.hpp"
 #include "init.hpp"

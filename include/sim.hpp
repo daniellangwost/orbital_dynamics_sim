@@ -23,7 +23,7 @@ struct SimulationState
 {
   const double dt = 1000;
   std::vector<astro::Body> bodies;
-  const int sim_speed = 50;
+  const int sim_speed = 150;
   OrbitTracker orbit_tracker {.reference_idx = 0, .orbiting_idx = 1};
 };
 
@@ -59,3 +59,4 @@ void update_sim(SimulationState& state);
 Vector2 world_to_screen(const astro::Vector3_d& pos, const SimulationState& state, const ViewState& view);
 astro::Vector3_d screen_to_world(const Vector2& screen_pos, const SimulationState& state, const ViewState& view);
 void draw_trails(SimulationState& state, ViewState& view);
+void draw_hud(SimulationState& state, ViewState& view);

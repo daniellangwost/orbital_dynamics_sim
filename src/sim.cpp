@@ -200,8 +200,21 @@ void draw_trails(SimulationState& state, ViewState& view)
 
 void draw_hud(SimulationState& state, ViewState& view)
 {
-  DrawRectangleRounded({10, 10, 400, 300}, 0.5, 0, GRAY);
-  DrawText(TextFormat("Speed: %.2f m/2", state.bodies[1].velocity.length()), 52, 30, 30, WHITE);
+  double distance = (state.bodies[0].pos - state.bodies[1].pos).length();
+  DrawRectangleRounded({10, 10, 400, 180}, 0.3, 0, GRAY);
+  DrawText(TextFormat("Speed: %.2f m/s", state.bodies[1].velocity.length()), 40, 30, 30, WHITE);
+  DrawText(TextFormat("Distance: %.3e m", distance), 40, 60, 30, WHITE);
+
+  // apoapsis and periapsis
+  OrbitTracker& tracker = state.orbit_tracker;
+  if (tracker.state == 2)
+  {
+    if (tracker.periapsis != 0) DrawText(TextFormat("Periapsis: %.3e m", tracker.periapsis), 40, 90, 30, WHITE);
+    else DrawText("Periapsis: ---", 40, 90, 30, WHITE);
+    if (tracker.apoapsis != 0) DrawText(TextFormat("Apoapsis: %.3e m", tracker.apoapsis), 40, 120, 30, WHITE);
+    else DrawText("Apoapsis: ---", 40, 120, 30, WHITE);  
+  }
+
 }
 
 void clear_bodies(SimulationState& state)

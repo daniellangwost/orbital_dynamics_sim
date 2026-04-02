@@ -6,7 +6,6 @@
 #include "body.hpp"
 
 
-
 struct OrbitTracker
 {
   int reference_idx{};
@@ -23,12 +22,13 @@ struct SimulationState
 {
   const double dt = 1000;
   std::vector<astro::Body> bodies;
-  const int sim_speed = 150;
+  int sim_speed = 5;
   OrbitTracker orbit_tracker {.reference_idx = 0, .orbiting_idx = 1};
 };
 
 struct ViewState
 {
+  bool show_hud = true;
   const int screenWidth = 1600;
   const int screenHeight = 900;
   double zoom = 2e-9;

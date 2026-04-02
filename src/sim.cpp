@@ -200,9 +200,12 @@ void draw_trails(SimulationState& state, ViewState& view)
 
 void draw_hud(SimulationState& state, ViewState& view)
 {
+  if (!view.show_hud) return;
+
+  // speed and distance
   double distance = (state.bodies[0].pos - state.bodies[1].pos).length();
-  DrawRectangleRounded({10, 10, 400, 180}, 0.3, 0, GRAY);
-  DrawText(TextFormat("Speed: %.2f m/s", state.bodies[1].velocity.length()), 40, 30, 30, WHITE);
+  DrawRectangleRounded({10, 10, 400, 182}, 0.3, 0, GRAY);
+  DrawText(TextFormat("Speed: %.0f m/s", state.bodies[1].velocity.length()), 40, 30, 30, WHITE);
   DrawText(TextFormat("Distance: %.3e m", distance), 40, 60, 30, WHITE);
 
   // apoapsis and periapsis
@@ -214,6 +217,9 @@ void draw_hud(SimulationState& state, ViewState& view)
     if (tracker.apoapsis != 0) DrawText(TextFormat("Apoapsis: %.3e m", tracker.apoapsis), 40, 120, 30, WHITE);
     else DrawText("Apoapsis: ---", 40, 120, 30, WHITE);  
   }
+
+  // sim speed
+    DrawText(TextFormat("Sim Speed: %d", state.sim_speed), 40, 150, 30, WHITE);
 
 }
 
@@ -243,7 +249,7 @@ void handle_input(SimulationState& state, ViewState& view)
     else if (view.zoom > view.min_zoom) view.zoom /= view.zoom_speed;
   }
   
-
+  // create bodies
   Vector2 mouse_pos = GetMousePosition();
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
   {
@@ -265,6 +271,12 @@ void handle_input(SimulationState& state, ViewState& view)
     }
   }
 
+  // toggle hud
+  if (IsKeyPressed(KEY_H)) view.show_hud ? view.show_hud = false : view.show_hud = true;
+
+  // change sim speed
+  if (IsKeyDown(KEY_UP)) state.sim_speed += 4;
+  if (IsKeyDown(KEY_DOWN) && state.sim_speed - 4 >= 5) state.sim_speed -= 4;
 }
 
 void render(SimulationState& state, ViewState view)

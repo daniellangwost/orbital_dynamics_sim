@@ -24,6 +24,7 @@ struct SimulationState
   std::vector<astro::Body> bodies;
   int sim_speed = 5;
   OrbitTracker orbit_tracker {.reference_idx = 0, .orbiting_idx = 1};
+  bool paused = false;
 };
 
 struct ViewState

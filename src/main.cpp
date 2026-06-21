@@ -13,7 +13,10 @@ int main()
   while (!WindowShouldClose()) 
   {
     handle_input(state, view);
-    update_sim(state);
+    if (!state.paused)
+    {
+      update_sim(state);
+    }
     render(state, view);
   }
   CloseWindow();

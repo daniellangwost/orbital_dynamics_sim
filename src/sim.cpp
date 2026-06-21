@@ -31,8 +31,8 @@ void step(SimulationState& state)
   {
     body.velocity += (body.acceleration * state.dt) / 2;
   }
-
-  Energies current_energies = compute_total_energy(state);
+  
+  // Energies current_energies = compute_total_energy(state);
   // log_energies(current_energies);
 }
 
@@ -72,8 +72,8 @@ Energies compute_total_energy(SimulationState& state)
     kinetic_energy += (1.0/2.0) * state.bodies[i].mass * state.bodies[i].velocity.length() * state.bodies[i].velocity.length();
     for (size_t j = i+1; j < state.bodies.size(); j++)
     {
-      double force = gravitational_force(state.bodies[i], state.bodies[j]).length();
-      potential_energy += force * (state.bodies[i].pos - state.bodies[j].pos).length();
+      double distance = (state.bodies[i].pos - state.bodies[j].pos).length();
+      potential_energy += -GRAVITY_CONST * state.bodies[i].mass * state.bodies[j].mass / distance;
     }
   }
   Energies energies;
@@ -272,11 +272,13 @@ void handle_input(SimulationState& state, ViewState& view)
   }
 
   // toggle hud
-  if (IsKeyPressed(KEY_H)) view.show_hud ? view.show_hud = false : view.show_hud = true;
+  if (IsKeyPressed(KEY_H)) view.show_hud = !view.show_hud;
 
   // change sim speed
   if (IsKeyDown(KEY_UP)) state.sim_speed += 4;
   if (IsKeyDown(KEY_DOWN) && state.sim_speed - 4 >= 5) state.sim_speed -= 4;
+
+  if (IsKeyPressed(KEY_SPACE)) state.paused = !state.paused;
 }
 
 void render(SimulationState& state, ViewState view)

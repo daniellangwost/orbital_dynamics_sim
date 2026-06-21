@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include "astro_math.hpp"
+#include "init.hpp"
 #include "raymath.h"
 #include "body.hpp"
 #include "sim.hpp"
@@ -278,7 +279,24 @@ void handle_input(SimulationState& state, ViewState& view)
   if (IsKeyDown(KEY_UP)) state.sim_speed += 4;
   if (IsKeyDown(KEY_DOWN) && state.sim_speed - 4 >= 5) state.sim_speed -= 4;
 
+  // pausing
   if (IsKeyPressed(KEY_SPACE)) state.paused = !state.paused;
+
+  // manual stepping
+  if (state.paused && IsKeyPressed(KEY_RIGHT))
+  {
+    update_sim(state);
+  }
+
+  //reset
+  if (IsKeyPressed(KEY_R))
+  {
+    state.bodies.clear();
+    init_bodies(state);
+    state.orbit_tracker = OrbitTracker{.reference_idx = 0, .orbiting_idx = 1};
+    view.center_body_index = 0;
+  }
+
 }
 
 void render(SimulationState& state, ViewState view)

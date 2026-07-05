@@ -15,6 +15,9 @@ namespace astro
         double length_squared() const;
         double length() const;
         Vector3_d normalize() const;
+        double dot(Vector3_d other) const;
+        Vector3_d cross(Vector3_d other) const;
+
 
         Vector3_d& operator+=(const Vector3_d& other);
         Vector3_d& operator-=(const Vector3_d& other);

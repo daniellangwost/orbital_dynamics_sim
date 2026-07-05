@@ -4,7 +4,6 @@
 
 namespace astro
 {
-
     double Vector3_d::length_squared() const
     {
       return x*x + y*y + z*z;
@@ -24,6 +23,22 @@ namespace astro
         return {x / l, y / l, z / l};
       }
       return {0.0, 0.0, 0.0};
+    }
+
+    double Vector3_d::dot(Vector3_d other) const
+    {
+        double new_x = x * other.x;
+        double new_y = y * other.y;
+        double new_z = z * other.z;
+        return new_x+new_y+new_z;
+    }
+
+    Vector3_d Vector3_d::cross(Vector3_d other) const
+    {
+        double new_x = y*other.z - z*other.y;
+        double new_y = z*other.x - x*other.z;
+        double new_z = x*other.y - y*other.x;
+        return {new_x, new_y, new_z};
     }
 
     Vector3_d& Vector3_d::operator+= (const Vector3_d& other)

@@ -46,6 +46,11 @@ struct Energies
   double kinetic_energy{};
 };
 
+struct OrbitalElements
+{
+  double h, e, a, i, raan, argument_of_periapsis, true_anomaly;
+};
+
 void step(std::vector<astro::Body>& bodies, double dt);
 void calculate_accelerations(std::vector<astro::Body>& bodies);
 astro::Vector3_d gravitational_force(const astro::Body& attractor, const astro::Body& target); 
@@ -53,6 +58,8 @@ Energies compute_total_energy(SimulationState& state);
 void log_energies(Energies& energies);
 void update_orbit_tracker(SimulationState& state);
 void log_orbit_event(SimulationState& state);
+void log_orbital_elements(OrbitalElements& elements);
+OrbitalElements calculate_elements(astro::Body& reference, astro::Body& orbiting);
 void draw_bodies(SimulationState& state, ViewState& view);
 void handle_input(SimulationState& state, ViewState& view);
 void render(SimulationState& state, ViewState view);

@@ -35,6 +35,9 @@ void step(SimulationState& state)
   
   // Energies current_energies = compute_total_energy(state);
   // log_energies(current_energies);
+
+  // OrbitalElements elements = calculate_elements(state.bodies[0], state.bodies[1]);
+  // log_orbital_elements(elements);
 }
 
 void calculate_accelerations(std::vector<astro::Body>& bodies)
@@ -81,6 +84,76 @@ Energies compute_total_energy(SimulationState& state)
   energies.kinetic_energy = kinetic_energy;
   energies.potential_energy = potential_energy;
   return energies;
+}
+
+OrbitalElements calculate_elements(astro::Body& reference, astro::Body& orbiting)
+{
+    double mu = GRAVITY_CONST * (reference.mass + orbiting.mass);
+    astro::Vector3_d r_vec = orbiting.pos - reference.pos;
+    astro::Vector3_d v_vec = orbiting.velocity - reference.velocity;
+    double dist = r_vec.length();
+    double speed = v_vec.length();
+    double radial_v = r_vec.dot(v_vec) / dist;
+    astro::Vector3_d specific_h = r_vec.cross(v_vec);
+    double cos_inclination = specific_h.z / specific_h.length();
+    if (cos_inclination > 1.0) cos_inclination = 1.0;
+    if (cos_inclination < -1.0) cos_inclination = -1.0;
+    double inclination = acos(cos_inclination);
+    astro::Vector3_d k_hat = {.x = 0.0, .y = 0.0, .z = 1.0};
+    astro::Vector3_d node_line = k_hat.cross(specific_h);
+    double node_mag = node_line.length();
+    double raan = 0.0;
+    if (node_mag >= 1e-9)
+    {
+        double cos_raan = node_line.x / node_mag;
+        if (cos_raan > 1.0) cos_raan = 1.0;
+        if (cos_raan < -1.0) cos_raan = -1.0;
+
+        if (node_line.y >= 0) raan = acos(cos_raan);
+        else raan = 2*PI - acos(cos_raan);
+    }
+    astro::Vector3_d ecc_vec = (1.0/mu) * ((speed*speed - mu / dist) * r_vec - dist * radial_v * v_vec);
+    double eccentricity = ecc_vec.length();
+    double cos_arg_of_periapsis = 0.0;
+    double arg_of_periapsis = 0.0;
+    if (node_mag >= 1e-9 && eccentricity >= 1e-9)
+    {
+        cos_arg_of_periapsis = node_line.dot(ecc_vec) / (node_mag * eccentricity);
+        if (cos_arg_of_periapsis > 1.0) cos_arg_of_periapsis = 1.0;
+        if (cos_arg_of_periapsis < -1.0) cos_arg_of_periapsis = -1.0;
+
+        if (ecc_vec.z >= 0) arg_of_periapsis = acos(cos_arg_of_periapsis);
+        else arg_of_periapsis = 2*PI - acos(cos_arg_of_periapsis);
+    }
+    double true_anomaly = 0.0;
+    if (eccentricity >= 1e-9)
+    {
+        double cos_true_anomaly = ecc_vec.dot(r_vec) / (eccentricity * dist);
+        if (cos_true_anomaly > 1.0) cos_true_anomaly = 1.0;
+        if (cos_true_anomaly < -1.0) cos_true_anomaly = -1.0;
+        if (radial_v >= 0) true_anomaly = acos(cos_true_anomaly);
+        else true_anomaly = 2*PI - acos(cos_true_anomaly);
+    }
+    OrbitalElements res;
+    res.argument_of_periapsis = arg_of_periapsis;
+    res.e = eccentricity;
+    res.h = specific_h.length();
+    res.i = inclination;
+    res.raan = raan;
+    res.true_anomaly = true_anomaly;
+    res.a = (res.h * res.h) / (mu * (1 - eccentricity * eccentricity));
+    return res;
+}
+
+void log_orbital_elements(OrbitalElements& elements)
+{
+    TraceLog(LOG_INFO, "h: %f", elements.h);
+    TraceLog(LOG_INFO, "e: %f", elements.e);
+    TraceLog(LOG_INFO, "a: %f", elements.a);
+    TraceLog(LOG_INFO, "i: %f", elements.i);
+    TraceLog(LOG_INFO, "RAAN: %f", elements.raan);
+    TraceLog(LOG_INFO, "Argument of Periapsis: %f", elements.argument_of_periapsis);
+    TraceLog(LOG_INFO, "True Anomaly: %f", elements.true_anomaly);
 }
 
 void log_energies(Energies& energies)
